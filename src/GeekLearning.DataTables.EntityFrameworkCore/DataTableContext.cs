@@ -34,11 +34,13 @@
 
 		public async Task<DataTableResult<TDataViewModel>> CreateResultAsync<TDataViewModel>(IEnumerable<TDataViewModel> viewModels)
 		{
-			return new DataTableResult<TDataViewModel>
+            var data = viewModels.ToList();
+
+            return new DataTableResult<TDataViewModel>
 			{
-				Data = viewModels.ToList(),
-				RecordsTotal = await Query.CountAsync(),
-				RecordsFiltered = await FilteredQuery.CountAsync(),
+				Data = data,
+				RecordsTotal = Query != null ? await Query.CountAsync() : data.Count,
+				RecordsFiltered = FilteredQuery != null ? await FilteredQuery.CountAsync() : data.Count,
 				Draw = Parameters.Draw
 			};
 		}
