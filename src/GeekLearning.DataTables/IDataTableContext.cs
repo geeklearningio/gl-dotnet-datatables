@@ -18,7 +18,9 @@
 
 		IQueryable<TData> Query { get; set; }
 
-		IQueryable<TData> FilteredQuery { get; set; }
+              IQueryable<TData> OrderedQuery { get; set; }
+
+              IQueryable<TData> FilteredQuery { get; set; }
 
 		IQueryable<TData> PaginatedQuery { get; set; }
 
