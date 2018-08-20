@@ -12,9 +12,9 @@
                             throw new InvalidOperationException("A DataTable resolver is required to paginate.");
                      }
 
-                     context.Query = query;
-                     context.FilteredQuery = context.Query
-                         .Order(context.Parameters.Order, context.Resolver)
+                     context.OrderedQuery = context.Query
+                            .Order(context.Parameters.Order, context.Resolver);
+                     context.FilteredQuery = context.OrderedQuery
                          .Search(context.Parameters.Search, context.Resolver);
                      context.PaginatedQuery = context.FilteredQuery
                          .Skip(context.Parameters.Start)
