@@ -11,6 +11,7 @@
                      {
                             throw new InvalidOperationException("A DataTable resolver is required to paginate.");
                      }
+
                      context.Query = query;
                      context.OrderedQuery = context.Query
                             .Order(context.Parameters.Order, context.Resolver);
