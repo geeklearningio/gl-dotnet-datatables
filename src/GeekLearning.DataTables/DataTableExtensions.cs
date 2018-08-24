@@ -11,7 +11,7 @@
                      {
                             throw new InvalidOperationException("A DataTable resolver is required to paginate.");
                      }
-
+                     context.Query = query;
                      context.OrderedQuery = context.Query
                             .Order(context.Parameters.Order, context.Resolver);
                      context.FilteredQuery = context.OrderedQuery
@@ -60,7 +60,7 @@
 
                      if (!string.IsNullOrWhiteSpace(searchParameters.Value))
                      {
-                            return query.DynamicWhere(resolver.SearchableColumn, searchParameters.Value);
+                            return query.DynamicWhere(resolver.SearchableColumns, searchParameters.Value);
                      }
 
                      return query;
