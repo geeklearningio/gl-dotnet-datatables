@@ -2,30 +2,31 @@
 {
 	using Expressions;
 	using Reflection;
+    using LinqKit;
 
 	public static class QueryableExtensions
 	{
-		public static IOrderedQueryable<TEntity> DynamicWhere<TEntity>(this IQueryable<TEntity> source, string propertyName, string value)
-			where TEntity : class
-		{
-			ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "p");
-			Expression instance = Expression.MakeMemberAccess(parameter, typeof(TEntity).GetProperty(propertyName));
-			MethodInfo method = typeof(string).GetMethod("Contains", new[] { typeof(string) });
 
-			var call = Expression.Call(instance, method, Expression.Constant(value, typeof(string)));
+        public static IQueryable<TEntity> DynamicWhere<TEntity>(this IQueryable<TEntity> source, string[] searchableColumns, string value)
+       where TEntity : class
+        {
+            var predicate = PredicateBuilder.New<TEntity>();
+            ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "p");
+            foreach (var propertyName in searchableColumns)
+            {
+                var property = typeof(TEntity).GetProperty(propertyName);
+                Expression instance = Expression.MakeMemberAccess(parameter, property);
+                if (property.PropertyType != typeof(string))
+                    throw new ArgumentException($"For the moment, you can only search on strings, so not on {propertyName} of type {property.PropertyType}.");
+                MethodInfo method = typeof(string).GetMethod("Contains", new[] { typeof(string) });
 
-			var resultExpression = Expression.Call(
-				typeof(Queryable),
-				"Where",
-				new Type[] { typeof(TEntity) },
-				source.Expression,
-				Expression.Quote(Expression.Lambda<Func<TEntity, bool>>(call, parameter))
-			);
+                var call = Expression.Call(instance, method, Expression.Constant(value, typeof(string)));
+                predicate = predicate.Or(Expression.Lambda<Func<TEntity, bool>>(call, parameter));
+            }
+            return source.Where(predicate);
+        }
 
-			return source.Provider.CreateQuery<TEntity>(resultExpression) as IOrderedQueryable<TEntity>;
-		}
-
-		public static IOrderedQueryable<TEntity> DynamicOrderBy<TEntity>(this IQueryable<TEntity> source, string propertyName, bool desc = false, bool then = false)
+        public static IOrderedQueryable<TEntity> DynamicOrderBy<TEntity>(this IQueryable<TEntity> source, string propertyName, bool desc = false, bool then = false)
 			where TEntity : class
 		{
 			return source.DynamicOrderByCore(propertyName, desc ? $"OrderByDescending" : "OrderBy");
