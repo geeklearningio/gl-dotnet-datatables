@@ -28,17 +28,23 @@
 
 		public IQueryable<TData> Query { get; set; }
 
+		public IQueryable<TData> OrderedQuery { get; set; }
+
 		public IQueryable<TData> FilteredQuery { get; set; }
 
-		public IQueryable<TData> PaginatedQuery { get; set; }
+              public IQueryable<TData> PaginatedQuery { get; set; }
 
 		public async Task<DataTableResult<TDataViewModel>> CreateResultAsync<TDataViewModel>(IEnumerable<TDataViewModel> viewModels)
 		{
-			return new DataTableResult<TDataViewModel>
+            var data = viewModels.ToList();
+            var recordsTotal = Query != null ? await Query.CountAsync() : data.Count;
+            var nothingFiltered = FilteredQuery == OrderedQuery;
+
+            return new DataTableResult<TDataViewModel>
 			{
-				Data = viewModels.ToList(),
-				RecordsTotal = await Query.CountAsync(),
-				RecordsFiltered = await FilteredQuery.CountAsync(),
+				Data = data,
+				RecordsTotal = recordsTotal,
+                            RecordsFiltered = nothingFiltered ? recordsTotal : await FilteredQuery?.CountAsync(),
 				Draw = Parameters.Draw
 			};
 		}
